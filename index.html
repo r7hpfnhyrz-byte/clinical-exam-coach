@@ -1,0 +1,972 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Clinical Exam Coach</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: case-file tool. Sticky header with countdown + tabs, one working column, cards only where a thing is an object you act on. */
+:root{
+  --paper:#F3F6F6; --card:#FFFFFF; --ink:#16242A; --muted:#566A70; --line:#D3DCDC;
+  --accent:#245E73; --accent-ink:#FFFFFF; --accent-soft:#E1EEF2;
+  --g:#2D7A4E; --g-soft:#E2F2E8; --a:#A9701A; --a-soft:#FBF0DC; --r:#B03A3A; --r-soft:#F8E3E3;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0F181C; --card:#16232A; --ink:#E4ECEC; --muted:#93A6AB; --line:#27373E;
+  --accent:#7DB8CD; --accent-ink:#0F181C; --accent-soft:#1B3440;
+  --g:#62C38D; --g-soft:#173426; --a:#E3AA52; --a-soft:#3A2C14; --r:#EA7B7B; --r-soft:#3D1D1D; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0F181C; --card:#16232A; --ink:#E4ECEC; --muted:#93A6AB; --line:#27373E;
+  --accent:#7DB8CD; --accent-ink:#0F181C; --accent-soft:#1B3440;
+  --g:#62C38D; --g-soft:#173426; --a:#E3AA52; --a-soft:#3A2C14; --r:#EA7B7B; --r-soft:#3D1D1D; color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--card)}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.15;margin:0}
+h2{font-size:1.45rem;font-weight:800}
+h3{font-size:1.08rem;font-weight:600}
+p{margin:0}
+a{color:var(--accent)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,summary:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--card);border-bottom:1px solid var(--line)}
+.hrow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;padding-block:12px 8px}
+.brand{display:flex;flex-direction:column;gap:2px}
+.brand h1{font-size:1.3rem;font-weight:800;letter-spacing:-.01em}
+.brand small{font-family:var(--mono);font-size:.72rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.clocks{display:flex;flex-wrap:wrap;gap:6px}
+.clock{display:flex;align-items:baseline;gap:6px;padding:4px 10px;border:1px solid var(--line);border-radius:6px;font-size:.82rem;color:var(--muted);background:var(--paper)}
+.clock b{font-family:var(--mono);font-size:1rem;color:var(--ink);font-variant-numeric:tabular-nums}
+nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{border:0;background:none;padding:10px 12px 12px;border-bottom:3px solid transparent;white-space:nowrap;color:var(--muted);font-weight:700;font-size:.95rem}
+nav button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+main{padding-block:24px 64px}
+section[role="tabpanel"]{display:flex;flex-direction:column;gap:20px}
+.lede{color:var(--muted);max-width:68ch}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+ol.al{list-style:lower-alpha;margin:0;padding-left:1.5em;display:flex;flex-direction:column;gap:6px}
+ol.num{list-style:decimal;margin:0;padding-left:1.5em;display:flex;flex-direction:column;gap:6px}
+ol.al li::marker,ol.num li::marker{font-family:var(--mono);color:var(--muted);font-size:.85em}
+.muted{color:var(--muted)}
+.small{font-size:.86rem}
+.mono{font-family:var(--mono)}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:8px 14px;font-weight:700;font-size:.92rem}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn:disabled{opacity:.5;cursor:default}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--accent-soft);color:var(--ink);white-space:nowrap}
+.pill.r{background:var(--r-soft);color:var(--r)} .pill.a{background:var(--a-soft);color:var(--a)} .pill.g{background:var(--g-soft);color:var(--g)}
+.bar{height:8px;border-radius:99px;background:var(--line);display:flex;overflow:hidden}
+.bar span{display:block;height:100%}
+.bar .g{background:var(--g)} .bar .a{background:var(--a)} .bar .r{background:var(--r)}
+/* syllabus */
+.group{display:flex;flex-direction:column;gap:8px}
+.ghead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:8px;padding-top:6px}
+.topic{background:var(--card);border:1px solid var(--line);border-radius:10px;border-left:5px solid var(--line)}
+.topic.r{border-left-color:var(--r)} .topic.a{border-left-color:var(--a)} .topic.g{border-left-color:var(--g)}
+.topic summary{list-style:none;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px;cursor:pointer}
+.topic summary::-webkit-details-marker{display:none}
+.topic summary h3{flex:1 1 220px;min-width:0}
+.topic .body{padding:0 16px 16px;display:flex;flex-direction:column;gap:12px;max-width:78ch}
+.rag{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.rag button{border:0;background:var(--card);padding:5px 10px;font-size:.8rem;font-weight:700;color:var(--muted)}
+.rag button+button{border-left:1px solid var(--line)}
+.rag button[aria-pressed="true"].r{background:var(--r-soft);color:var(--r)}
+.rag button[aria-pressed="true"].a{background:var(--a-soft);color:var(--a)}
+.rag button[aria-pressed="true"].g{background:var(--g-soft);color:var(--g)}
+.ask{border-left:3px solid var(--accent);padding:8px 12px;background:var(--accent-soft);border-radius:0 8px 8px 0}
+/* flashcards */
+.fc-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+select,textarea,input[type=text]{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;max-width:100%}
+.flash{background:var(--card);border:1px solid var(--line);border-radius:14px;min-height:240px;padding:24px;display:flex;flex-direction:column;justify-content:space-between;gap:18px;cursor:pointer;box-shadow:0 1px 0 var(--line)}
+.flash .q{font-family:var(--display);font-weight:600;font-size:1.35rem;line-height:1.3;text-wrap:balance}
+.flash .ans{font-size:1.05rem;border-top:1px dashed var(--line);padding-top:14px}
+.flash .hint{font-size:.85rem;color:var(--muted)}
+.mark3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mark3 .btn{padding:12px 6px}
+.mark3 .r{color:var(--r)} .mark3 .a{color:var(--a)} .mark3 .g{color:var(--g)}
+/* viva */
+.vq{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:8px;cursor:pointer;text-align:left;width:100%}
+.vq[aria-current="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.vlist{display:flex;flex-direction:column;gap:8px;max-height:640px;overflow:auto;padding-right:4px}
+.vwork{position:sticky;top:150px}
+textarea{width:100%;min-height:170px;resize:vertical;line-height:1.5}
+.timer{font-family:var(--mono);font-size:1.5rem;font-variant-numeric:tabular-nums}
+.timer.over{color:var(--r)}
+.feedback{border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--paper)}
+.score{font-family:var(--display);font-size:2rem;font-weight:800;line-height:1}
+.checks{display:flex;flex-direction:column;gap:6px}
+.checks label{display:flex;gap:8px;align-items:flex-start}
+.checks input{margin-top:5px;accent-color:var(--accent)}
+.five{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:8px}
+.five div{border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--card)}
+.five b{display:block;font-family:var(--display)}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{border-bottom:1px solid var(--line);padding:8px;vertical-align:top;text-align:left}
+th{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.tscroll{overflow-x:auto}
+/* plan */
+.phase{display:grid;grid-template-columns:150px 1fr;gap:14px;padding:16px 0;border-top:1px solid var(--line)}
+.phase.now .when{color:var(--accent)}
+.phase .when{font-family:var(--mono);font-size:.8rem;color:var(--muted)}
+.phase.now{background:linear-gradient(90deg,var(--accent-soft),transparent 70%);border-radius:8px;padding-left:10px}
+@media (max-width:640px){.phase{grid-template-columns:1fr;gap:6px}.vwork{position:static}}
+.sync{font-size:.78rem;color:var(--muted)}
+footer{border-top:1px solid var(--line);padding-block:20px 40px;color:var(--muted);font-size:.84rem}
+@media (prefers-reduced-motion:no-preference){.flash{transition:transform .12s ease}.flash:active{transform:scale(.995)}}
+</style>
+</head>
+<body>
+
+
+<header>
+  <div class="wrap">
+    <div class="hrow">
+      <div class="brand"><small>7CL504 · Component 2 · Clinical exam</small><h1>Clinical Exam Coach</h1></div>
+      <div class="clocks" id="clocks"></div>
+    </div>
+    <nav role="tablist" aria-label="Sections" id="tabs">
+      <button role="tab" data-tab="today">Today</button>
+      <button role="tab" data-tab="syllabus">Syllabus</button>
+      <button role="tab" data-tab="cards">Flashcards</button>
+      <button role="tab" data-tab="viva">Viva drill</button>
+      <button role="tab" data-tab="slides">Slide checklist</button>
+      <button role="tab" data-tab="plan">Plan</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section role="tabpanel" id="p-today"></section>
+  <section role="tabpanel" id="p-syllabus" hidden></section>
+  <section role="tabpanel" id="p-cards" hidden></section>
+  <section role="tabpanel" id="p-viva" hidden></section>
+  <section role="tabpanel" id="p-slides" hidden></section>
+  <section role="tabpanel" id="p-plan" hidden></section>
+</main>
+
+<footer class="wrap">
+  <p>Built from your 7CL504 assessment brief and handbook (2026-27), the Year 2 induction, the Week 5 trauma lecture, your Year 1 lecture slides, the BACP Ethical Framework 2026 and your Year 2 Development Plan. Check every reference against the original source before you use it in assessed work. </p>
+  <div class="row" style="margin-top:12px"><span class="sync" id="sync">Progress saves in this browser only.</span><button class="btn" id="exportBtn">Export progress</button><label class="btn" for="importFile" style="cursor:pointer">Import progress</label><input type="file" id="importFile" accept="application/json,.json" hidden><span class="small" id="ioNote"></span></div>
+  <p class="small" style="margin-top:8px">To move progress between your phone and laptop, export on one and import on the other.</p>
+</footer>
+
+<script>
+/* ---------- DATA ---------- */
+const DATES = {
+  cs: new Date("2027-04-20T11:00:00Z"),   // 12:00 BST
+  slides: new Date("2027-05-14T11:00:00Z"),
+  examStart: new Date("2027-05-25T08:00:00Z"),
+  examEnd: new Date("2027-06-24T17:00:00Z")
+};
+
+const GROUPS = [
+  {id:"core", name:"Core theories"},
+  {id:"form", name:"Assessment and formulation"},
+  {id:"safe", name:"Safety and regulation"},
+  {id:"pres", name:"Presentations"},
+  {id:"int",  name:"Interventions"},
+  {id:"prof", name:"Ethics, law and practice"}
+];
+
+const TOPICS = [
+ {id:"pca",g:"core",n:"Person-Centred Approach",src:"Y1 PCA lecture; PCA Further Exploration (2026)",refs:"Rogers (1957; 1959); Mearns and Thorne (2007)",
+  p:["Actualising tendency: one basic drive towards growth, self-regulation and enhancement.",
+     "Self-concept is built from the attitudes of significant others. When it clashes with organismic experience, the experience is distorted or denied. That incongruence shows up as anxiety and tension.",
+     "Conditions of worth: other people's evaluations, taken in and usually held outside awareness. They create an external locus of evaluation.",
+     "Six conditions (Rogers, 1957): psychological contact, client incongruence, therapist congruence, unconditional positive regard, empathic understanding, and the client perceiving both to at least a minimal degree.",
+     "Self-concept has three parts: self-image, self-esteem and the ideal self. The ideal self is shaped by conditions of worth."],
+  ask:"Where did conditions of worth show up in the recorded session, and what did you do with them in the moment?"},
+ {id:"cbt",g:"core",n:"Cognitive Behavioural Therapy",src:"Y1 CBT lecture; CBT Further Exploration (2026)",refs:"Beck et al. (1979); Greenberger and Padesky (1995)",
+  p:["Beck: distress comes from how events are interpreted, not from the events alone.",
+     "Levels of cognition: NATs, then intermediate beliefs (rules, attitudes, assumptions, so your MAs and UMAs), then core beliefs about self, others and world. Schemas or life traps sit deepest.",
+     "Thinking errors: all-or-nothing, catastrophising, discounting the positive, emotional reasoning, labelling, mind reading, overgeneralisation, personalisation, should and must statements, mental filter.",
+     "Ellis's ABC (REBT): Activating event, Belief, Consequence. The belief drives the consequence.",
+     "Session structure: mood check, bridge, agenda, work on agenda, action plan, summary, feedback."],
+  ask:"Take one NAT from your client and walk it down to the core belief. What evidence did you use?"},
+ {id:"at",g:"core",n:"Attachment Theory",src:"Y1 Attachment lecture; Attachment Interventions (2026)",refs:"Bowlby (1969; 1988); Ainsworth et al. (1978); Bartholomew and Horowitz (1991); Holmes (2001)",
+  p:["Bowlby: attachment is a biological drive for closeness and survival. The caregiver is a secure base and safe haven. Internal working models (IWMs) of self and others carry into adult relationships.",
+     "Ainsworth et al. (1978), Strange Situation: secure, insecure-avoidant, insecure-ambivalent. Main and Solomon (1990) added disorganised.",
+     "Adult attachment: the Adult Attachment Interview (Main) codes secure-autonomous, dismissing and preoccupied, judged by how the story is told more than what is said. Brennan, Clark and Shaver (1998) use two dimensions: anxiety and avoidance.",
+     "The self/other four-category model (secure, preoccupied, dismissing, fearful) is Bartholomew and Horowitz (1991), not Ainsworth. Case Study 1 got this wrong, so do not carry it forward.",
+     "In the room: the relationship is data. Notice the roles you are pulled into and what you feel."],
+  ask:"What is your client's IWM of self and others, and how did it show up with you?"},
+ {id:"integ",g:"core",n:"Integration and the relationship",src:"Y2 induction; Integration lecture (Kang)",refs:"Bordin (1979); Safran and Muran (2000); Mearns and Cooper (2005)",
+  p:["Integration means one coherent framework that combines theories. Eclecticism borrows techniques without their theory. Lazarus's BASIC ID comes from technical eclecticism, so be ready to say how you hold it inside an integrative model.",
+     "Derby ICP is PCA, CBT and AT, organised by the TTM. The Y2 induction says examiners listen for PCA (CoW, self, self-concept), AT (style, IWM) and CBT (NATs, MAs, TEs, distorted thinking, core beliefs) in the room.",
+     "Working alliance (Bordin, 1979): an emotional bond, agreement on goals, agreement on tasks.",
+     "Rupture and repair (Safran and Muran, 2000): withdrawal and confrontation ruptures. A repaired rupture can deepen the alliance.",
+     "Relational depth (Mearns and Cooper, 2005) is 80+ territory: presence, immediacy, staying with what is salient."],
+  ask:"How is what you do integration rather than eclecticism?"},
+
+ {id:"ttm",g:"form",n:"Transtheoretical Model (TTM)",src:"Y1 PCA and TTM lecture; Clinical Assessment lecture",refs:"Prochaska and DiClemente (1983); Prochaska, DiClemente and Norcross (1992); West (2005)",
+  p:["Stages: precontemplation, contemplation, preparation, action, maintenance, with relapse. People cycle rather than move in a straight line.",
+     "Levels: symptom or situational, maladaptive cognitions, current interpersonal conflicts, family or systems conflicts, intrapersonal conflicts.",
+     "Processes: consciousness raising, dramatic relief, environmental re-evaluation and self-re-evaluation help the earlier stages. Self-liberation, counterconditioning, stimulus control, contingency management and the helping relationship help the later stages.",
+     "Rule: match the intervention to the stage. An action task at contemplation is a mismatch an examiner will spot.",
+     "Critique: stage boundaries are arbitrary and the evidence for stage-matched work is mixed (West, 2005). Use it as a lens, not a law."],
+  ask:"Where was the client on the TTM before the recorded session, and what is your evidence?"},
+ {id:"basic",g:"form",n:"BASIC ID",src:"Clinical Assessment lecture (Kang)",refs:"Lazarus (1981)",
+  p:["Lazarus's multimodal assessment: Behaviour, Affect, Sensation, Imagery, Cognition, Interpersonal, Drugs and Biology.",
+     "Use it to map the whole person and catch gaps a five-part model misses, such as imagery, sensation and medication.",
+     "Tracking: the order in which a client's modalities fire (for example sensation, then cognition, then affect). Bridging: start in the client's preferred modality before moving to another.",
+     "Drugs and Biology links straight to risk: medication, side effects, alcohol, sleep, physical health."],
+  ask:"What did the BASIC ID show you that the Padesky formulation did not?"},
+ {id:"padesky",g:"form",n:"Padesky formulation",src:"Clinical Assessment lecture; Week 5 trauma lecture",refs:"Padesky and Mooney (1990); Greenberger and Padesky (1995); Persons (1989)",
+  p:["Five parts: environment or situation, thoughts, emotions, physical reactions, behaviour. Each part affects the others.",
+     "A formulation is a hypothesis about what causes and maintains the problem. It guides the plan and is revised as therapy goes on.",
+     "Three nested levels: case, problem or disorder, symptom (Persons, 1989).",
+     "Integrative version: add CoW and self-concept (PCA), IWM and attachment style (AT), and core beliefs and UMAs (CBT) to the five parts.",
+     "Share it with the client. A drawn model builds hope and collaboration."],
+  ask:"Give me your formulation in 60 seconds using all three theories."},
+ {id:"assess",g:"form",n:"Assessment, contract and measures",src:"Clinical Assessment lecture; Skills lecture handouts",refs:"Culley and Bond (2011); Barkham et al. (2013)",
+  p:["Assessment gathers the presenting issue, symptoms and functioning, history, medication, risk, support and expectations. It is ongoing, not a one-off.",
+     "Measures in your teaching: CORE-OM and CORE-10, GAD-7, BDI-II, BAI. The rubric names CORE-OM at 60-69 and wants measures embedded in your rationale at 80+.",
+     "DSM-5 and ICD-11: useful as a shared language and for spotting problems, but they risk labelling and a cookbook approach.",
+     "The contract covers trainee status, confidentiality and its limits, recording, supervision, notes, session length and number, cancellations and DNAs, and emergency contact."],
+  ask:"What did your outcome measures tell you, and what did you do differently because of them?"},
+ {id:"risk",g:"form",n:"Risk assessment",src:"Risk Assessment lecture (Kang); BACP suicide fact sheet",refs:"NICE (2022) NG225; BACP Good Practice in Action 042",
+  p:["Five steps: identify the risk, decide who could be harmed and how, evaluate and act, record it, review it.",
+     "Risk is not a number and not a checklist. Tools open honest conversations. NICE (2022) says not to use risk tools to predict suicide or self-harm.",
+     "Gather the current situation, past history and social factors, then plan together.",
+     "Protective factors (BACP): support networks, willingness to talk, coping strategies, activity, key attachment figures, an agreed crisis plan, and the quality of the alliance.",
+     "Warning signs: hopelessness, withdrawal, sudden calm, recent crisis, changes in personality or appearance, self-harm. Put medication in the risk picture."],
+  ask:"Talk me through your ongoing risk assessment. At what point would you have broken confidentiality?"},
+ {id:"keep",g:"form",n:"Keep Well plan (safety plan)",src:"Integration lecture: Keeping Well Plan handout",refs:"Stanley and Brown (2012)",
+  p:["A written plan the client helps write and keeps. It is not a no-harm contract.",
+     "Usual parts: warning signs, own coping strategies, people and places for distraction, people to ask for help, professional and crisis contacts, making the environment safer.",
+     "Review it when risk changes, and before breaks and endings.",
+     "Link it to the Window of Tolerance: what keeps the client in green, and what to do at amber and red."],
+  ask:"How did the Keep Well plan change during therapy, and who wrote it?"},
+
+ {id:"suds",g:"safe",n:"SUDS",src:"Clinical Assessment lecture; Week 5 trauma lecture",refs:"Wolpe (1969)",
+  p:["Subjective Units of Distress Scale: the client rates their own distress, usually 0-10 or 0-100.",
+     "Take a baseline in the first ten minutes, before any exploratory work. Repeat before and after each intervention. This was your marker's main safety point.",
+     "It gives you evidence of movement for the exam: 'SUDS went from 7 to 4 after grounding'.",
+     "With neurodivergent clients, check more often. Some move from green to red without passing amber."],
+  ask:"Where did you take SUDS in the recording, and what did you do with the number?"},
+ {id:"wot",g:"safe",n:"Window of Tolerance",src:"Attachment lecture; Integration lecture; Week 5 trauma lecture",refs:"Siegel (1999)",
+  p:["The zone of arousal where a person can think, feel and cope.",
+     "Above it is hyperarousal: panic, anger, racing thoughts. Below it is hypoarousal: numbness, shutdown, dissociation.",
+     "Therapy works at the edge of the window and slowly widens it. Do not work outside it.",
+     "Traffic light tool: green is calm reflection, amber is a warning, red is intense emotion. Clients can use it to signal you."],
+  ask:"How did you know the client was inside their window during the main intervention?"},
+ {id:"dts",g:"safe",n:"Drive, Threat, Soothe",src:"Week 5 trauma lecture; PCA Further Exploration handout",refs:"Gilbert (2009)",
+  p:["Compassion-focused therapy's three emotion-regulation systems.",
+     "Threat: protection, with anxiety, anger and disgust. Drive: wanting and achieving. Soothe: safeness, contentment and connection.",
+     "Distress often means threat is overactive and soothe is underdeveloped, for example after harsh or neglectful early care.",
+     "Draw the three circles with the client and ask what fills each. It links to attachment (soothe as an internalised secure base) and to shame."],
+  ask:"Draw your client's three circles. Which system drove the presenting problem?"},
+ {id:"sotb",g:"safe",n:"Slamming on the brakes",src:"Clinical Assessment lecture; Week 5 trauma lecture",refs:"Rothschild (2000)",
+  p:["Rothschild's car image: before pressing the accelerator (processing), client and therapist must know how to brake.",
+     "Braking means stopping the content and bringing arousal down at once, before it floods or tips into dissociation.",
+     "Your drill: interrupt, even mid-flow; name it ('Can we stop there a second?'); take SUDS; ground if needed; decide together whether to carry on.",
+     "Contract it early so the client can call it too. It was named four times across your two feedback sheets."],
+  ask:"Show me the moment in the recording where you put the brakes on. Why then?"},
+ {id:"dual",g:"safe",n:"Dual awareness",src:"Week 5 trauma lecture; ACEs lecture",refs:"Rothschild (2000)",
+  p:["Holding two frames at once: the safe present body, and the memory being recalled.",
+     "It prevents flooding by keeping one foot in the here and now.",
+     "Questions: What am I remembering? What am I feeling? Where am I feeling it? Where am I, here and now?",
+     "Flashback halting protocol: 'Right now I am feeling ___ and sensing ___ in my body, because I am remembering ___ (title only). At the same time I am looking around where I am now, in (year), here in (place), and I can see ___, so I know ___ is not happening now.'"],
+  ask:"If your client had a flashback in session, what would you have said, word for word?"},
+ {id:"ground",g:"safe",n:"Grounding and safe place",src:"Grounding lecture (Kang); Attachment lecture",refs:"Lecture materials",
+  p:["Grounding brings the client back to the present: 5-4-3-2-1 senses, box breathing, self-touch, movement, holding an object.",
+     "'We must never let a client leave unless they are grounded' (Grounding lecture).",
+     "Agree methods in supervision first. A body scan can trigger trauma clients.",
+     "Ground before and after timeline work and other deep interventions.",
+     "The last ten minutes are for containing and grounding, not for opening new material."],
+  ask:"How did you end the session safely?"},
+
+ {id:"anx",g:"pres",n:"Anxiety",src:"Anxiety lecture (Kang, 2026)",refs:"Beck, Emery and Greenberg (1985); Wells (1997); Spitzer et al. (2006)",
+  p:["State anxiety is the reaction now. Trait anxiety is the general tendency to read situations as threatening.",
+     "Beck, Emery and Greenberg (1985): anxiety comes from overestimating danger and underestimating the ability to cope.",
+     "Kept going by avoidance and safety behaviours, which stop the person learning that the fear was wrong.",
+     "Lecture interventions: psychoeducation (fight, flight, freeze), breathing, eliciting NATs and assumptions, probability estimates, pie charts, exposure, behavioural experiments.",
+     "The lecture's anxiety model links worry to attachment, MAs, CoW and self versus self-concept. Measure with GAD-7."],
+  ask:"Your client did not present with anxiety. How would you have worked if they had?"},
+ {id:"dep",g:"pres",n:"Depression",src:"Depression lecture (Kang)",refs:"Beck et al. (1979); Gilbert (2007)",
+  p:["Beck's cognitive triad: negative views of self, world and future.",
+     "Signs in four areas: emotional, cognitive, physiological and behavioural.",
+     "Behavioural activation: increase contact with rewarding activity to lift mood, then work on thoughts.",
+     "Attachment: inconsistent or insensitive early care lowers resilience and makes breakdown under stress more likely.",
+     "Culture: some people express distress through the body, and stigma can delay help. Always assess suicide risk."],
+  ask:"What would your plan be for the first three sessions with a moderately depressed client?"},
+ {id:"grief",g:"pres",n:"Grief and loss",src:"Working with Loss lecture (2026)",refs:"Kübler-Ross (1969); Bowlby (1980); Stroebe and Schut (1999); Tonkin (1996); Doka (1989)",
+  p:["Loss is being without; bereavement is the process; grief is the reaction; mourning is the cultural expression.",
+     "Kübler-Ross: denial, anger, bargaining, depression, acceptance. Never meant to be linear. Use it to normalise, not to prescribe.",
+     "Bowlby: numbing, yearning and protest, despair, reorganisation. Grief is the attachment system switched on.",
+     "Dual Process Model: healthy grief moves back and forth between loss orientation and restoration orientation.",
+     "Tonkin: grief does not shrink, life grows around it. Attachment link: gently encourage avoidant clients towards loss, and help anxious clients move from rumination towards restoration."],
+  ask:"How would your formulation change if the presenting issue were bereavement?"},
+ {id:"se",g:"pres",n:"Low self-esteem",src:"Anxiety lecture (low self-esteem model slides)",refs:"Fennell (1997)",
+  p:["Early experience leads to a bottom line (core belief), then rules for living to cope with it.",
+     "When a rule is broken, or might be, the bottom line is activated. That brings negative predictions (anxiety) and self-critical thoughts (depression).",
+     "Unhelpful behaviour (avoidance, over-caution, ignoring success) seems to confirm the bottom line, and the cycle closes.",
+     "Work both routes: question self-critical thoughts, keep a positive log, experiment with new rules.",
+     "PCA reading: rules for living look a lot like conditions of worth. Say that link out loud in the exam."],
+  ask:"Map your client onto Fennell's model. Which rule for living did you test?"},
+ {id:"aces",g:"pres",n:"Adverse Childhood Experiences",src:"ACEs lecture (Nicklin, 2026)",refs:"Felitti et al. (1998); Bellis et al. (2014)",
+  p:["Felitti et al. (1998), about 17,000 adults: 67% had at least one ACE and 12.6% had four or more. More ACEs meant worse health outcomes.",
+     "UK replication: Bellis et al. (2014).",
+     "Mechanism: toxic stress, an overactive amygdala, weaker prefrontal regulation and HPA-axis cortisol load. Neutral situations can be read as threat.",
+     "Critique: misses individual differences, protective factors and adversity outside the household.",
+     "Practice: stabilisation and safety first. Ask 'What happened to you?' not 'What is wrong with you?'"],
+  ask:"What are the limits of an ACE score as a way of understanding your client?"},
+ {id:"trauma",g:"pres",n:"Trauma",src:"Working with Trauma lecture (Kang, Week 5)",refs:"Herman (1992); Rothschild (2000); van der Kolk (2014); SAMHSA (2014)",
+  p:["Acute (single event), chronic (repeated) and complex (multiple, interpersonal). 'Trauma is not what happens to you, it is what happens inside you' (Maté, quoted in lecture).",
+     "Three phases (Herman, 1992): safety, remembrance and mourning, reconnection. Your lecture calls them stabilisation, reprocessing and reprogramming.",
+     "Five Fs: fight, flight, freeze, flop, friend. Dissociation: depersonalisation, derealisation, identity disturbance, identity alteration, amnesia.",
+     "Lecture principle: remembering the trauma is not needed. Process the impact, and only the impact, at the client's pace and by their choice.",
+     "ICD-11 complex PTSD adds problems with emotion regulation, self-concept and relationships."],
+  ask:"If your client disclosed childhood trauma in session three, what would you do and not do?"},
+ {id:"shame",g:"pres",n:"Shame and guilt",src:"Week 5 trauma lecture",refs:"Nathanson (1992); Gilbert (2009); Neff (2003)",
+  p:["Guilt: 'I did something bad.' Shame: 'I am bad.' Clients often say 'embarrassed' when they mean shame.",
+     "Four responses to shame (Nathanson, 1992): attack self, withdraw, attack others, avoid.",
+     "Healthy guilt guides values. Excessive guilt is out of proportion and feeds anxiety and depression.",
+     "Interventions: name it, CFT and the compassionate letter, the self-compassion friend exercise, challenging thinking errors, forgiveness work.",
+     "Your CS1 client showed shame and you moved past his embarrassment. Expect this question."],
+  ask:"How would you work with shame or guilt?"},
+ {id:"anger",g:"pres",n:"Anger",src:"Week 5 trauma lecture; Anxiety lecture",refs:"Bowlby (1973); Gilbert (2007)",
+  p:["Separate the feeling from the behaviour. Many words, one primal feeling.",
+     "The iceberg: anger is the surface, hurt is underneath.",
+     "Three ways of handling anger: expressing, suppressing, calming. Aim for assertive expression of needs.",
+     "Track the sequence: sense, thinking, feeling, needing, doing. Bowlby (1973) saw anger held inside separation anxiety."],
+  ask:"Where was anger in your client's story, and what was underneath it?"},
+ {id:"nd",g:"pres",n:"Neurodiversity",src:"Tutor's clinical exam slide list; your 7CL501 feedback",refs:"Milton (2012); BACP reasonable adjustments fact sheet (GPiA 080)",
+  p:["The tutor's list asks for a neurodiversity slide whether or not your clients are neurodivergent.",
+     "Adapt: clear structure, explicit agenda, literal language, processing time, visual aids, a sensory-friendly room, more frequent check-ins.",
+     "Your marker: some neurodivergent clients go from green to red without an amber warning. SUDS and check-ins matter more.",
+     "Double empathy problem (Milton, 2012): communication breakdown is two-way, not a deficit in the autistic person.",
+     "The BACP reasonable adjustments fact sheet is in your BACP Guides folder."],
+  ask:"Most of your caseload is neurodivergent. What did you adapt, and why?"},
+
+ {id:"socr",g:"int",n:"Socratic questioning",src:"CBT lectures; Socratic handouts",refs:"Padesky (1993)",
+  p:["Guided discovery, not persuasion.",
+     "Four stages: informational questions, empathic listening, summaries, analytical or synthesising questions. Your marker said you start but do not finish all four.",
+     "Question types: clarification, assumptions, evidence, viewpoints, implications, questions about the question.",
+     "Attachment-flavoured examples from your lecture: 'When was the first time you felt like that? How old were you?' and 'If your best friend said that, what would you say to them?'"],
+  ask:"Walk me through all four stages using a line from your transcript."},
+ {id:"restr",g:"int",n:"Cognitive restructuring",src:"CBT Further Exploration (2026)",refs:"Beck (1995); Greenberger and Padesky (1995)",
+  p:["Steps: identify the unhelpful thought, label the thinking style, challenge it, revise the hot thought.",
+     "Seven-column thought record: situation, thought (belief %), emotion (%), evidence for, evidence against, alternative thought, re-rate.",
+     "Downward arrow: 'If that were true, what would it mean about you?' to reach the core belief.",
+     "Core-belief tools: pie chart, continuum, positive log, cost-benefit analysis, historical test, acting as if."],
+  ask:"Why did you choose restructuring at that stage of change?"},
+ {id:"be",g:"int",n:"Behavioural experiments",src:"CBT Further Exploration (2026)",refs:"Bennett-Levy et al. (2004)",
+  p:["Test a belief by doing something different.",
+     "Hypothesis-testing (test A, or compare A and B) or discovery (no clear hypothesis yet). Active (real life or role-play) or observational (watch, survey).",
+     "Five steps: rationale, prediction, set-up, record the outcome, review. Rate the belief before and after.",
+     "Your rule: model it in the room before you set it as homework. Check the client's TTM stage and attachment style first."],
+  ask:"What homework did you set, and how might attachment style affect whether it gets done?"},
+ {id:"attint",g:"int",n:"Attachment interventions",src:"Attachment Interventions lecture (2026)",refs:"Holmes (2001); Hartman (1978); McGoldrick, Gerson and Shellenberger (1999); Karpman (1968); Choy (1990)",
+  p:["Genogram (Bowen; McGoldrick et al.): family structure, relationships and patterns across generations.",
+     "Ecomap (Hartman, 1978): the client at the centre with the systems around them, and the quality and direction of support. Your marker said session two was too early.",
+     "BABI (Holmes, 2001): secure base, exploration and fun, loss, healthy protest and anger. Ask each as a child and now.",
+     "Drama triangle (Karpman, 1968): victim, persecutor, rescuer. Winner's triangle (Choy, 1990): vulnerable, assertive, caring. Notice your own pull to rescue.",
+     "Timeline: only once the relationship is strong, with grounding before and after."],
+  ask:"What specific question would you ask to explore attachment more explicitly?"},
+ {id:"pcaint",g:"int",n:"Person-centred skills",src:"PCA Further Exploration (2026); Week 5 trauma lecture",refs:"Luft and Ingham (1955); Mearns and Cooper (2005)",
+  p:["Reflecting, paraphrasing, summarising, open questions, focusing, immediacy and silence.",
+     "Immediacy: talk about what is happening between you right now. The rubric names it at 70-79.",
+     "Silence and staying with salient material are named at 90+. Your drill: count six.",
+     "Johari window: open, blind, hidden, unknown. Maslow's hierarchy for needs-based work."],
+  ask:"Where was immediacy in this session, and where could it have been?"},
+ {id:"cft",g:"int",n:"Compassion and rescripting",src:"Week 5 trauma lecture",refs:"Gilbert (2009); Neff (2003); Akhtar and Barlow (2018)",
+  p:["Self-compassion exercise: how would you speak to a close friend? How do you speak to yourself? What would change if you treated yourself like the friend?",
+     "Compassionate letter: written from a warm, wise, non-judging view.",
+     "Imagery rescripting steps: elicit the image, the current emotion, the desired emotion, a new image, the threat, the meaning.",
+     "Forgiveness phases: uncovering, decision, work, deepening. REACH: recall, empathise, altruistic gift, commit, hold on."],
+  ask:"Why would compassion work suit this client better than restructuring?"},
+
+ {id:"bacp",g:"prof",n:"BACP Ethical Framework 2026",src:"BACP (2026) final text; 7CL503 Week 3",refs:"BACP (2026)",
+  p:["In force from 1 November 2026. The 2025 draft in your Handouts folder lists 11 principles. The final version has 12 because Honesty was added.",
+     "The 12 principles: confidentiality, honesty, transparency, do no harm, best interest, respect, fairness, anti-oppression, trust, collaboration, compassion, integrity.",
+     "Four core responsibilities: build appropriate relationships; keep ourselves and those using our services safe; understand and act on our legal and professional responsibilities; deliver services to expected professional standards.",
+     "Six questions for an ethical rationale: What are the issues? How will I involve the person? Which internal factors? Which external factors? What did I decide, and was it consistent with the principles? How was it reviewed, and with whom?",
+     "Collaborative process: discuss with the person if you can and should, listen, reflect with your supervisor, consider legal and organisational duties, review and record."],
+  ask:"Which two principles were in tension in this case? Use the six questions to show how you decided."},
+ {id:"conf",g:"prof",n:"Confidentiality and breaking it",src:"Breaking Confidentiality lecture (7CL501); Risk Assessment lecture",refs:"Mitchels and Bond (2021); Caldicott principles (NDG, 2020)",
+  p:["Must disclose: terrorism, money laundering, drug trafficking. Do not tell the client, because that could be tipping off.",
+     "May need to disclose: serious risk to the client or others, a child or vulnerable adult at risk, criminal intent, a court order.",
+     "Weigh it: degree of risk, seriousness of harm, imminence, and whether disclosure would work (Mitchels and Bond, 2021).",
+     "First contact: placement manager or safeguarding lead, then supervisor. Record dates, times, who and why.",
+     "Legal basis: common law, Human Rights Act 1998, contract law, UK GDPR and the Data Protection Act 2018. Caldicott: justify, use the minimum necessary, need to know."],
+  ask:"Talk me through exactly what you would do if the client disclosed a child at risk in minute 45."},
+ {id:"rec",g:"prof",n:"Records and recordings",src:"Breaking Confidentiality lecture; Audio recording policy (Sept 2026)",refs:"BACP (2026); ICO guidance",
+  p:["Client notes are personal data. Keep them brief, factual and focused on process. Write as if the client is reading.",
+     "Process notes are for supervision, fully anonymised, kept off the client file.",
+     "Recording policy: a dedicated password-protected device; upload to OneDrive within 48 hours, then delete from the device; at most 2 recordings per client and 10 in total.",
+     "Exam recordings must be 48-52 minutes (50-minute contract) or 58-62 minutes (60-minute contract). Delete within 5 working days of ratification."],
+  ask:"How did you protect this client's data from consent to deletion?"},
+ {id:"sup",g:"prof",n:"Supervision",src:"7CL504 brief; your Development Plan",refs:"Proctor (1986); Hawkins and Shohet (2012)",
+  p:["You must show supervision for every theory and intervention you used.",
+     "Proctor's functions: normative (standards and ethics), formative (learning), restorative (support).",
+     "The seven-eyed model (Hawkins and Shohet) helps you name the focus: client, interventions, relationship, you, parallel process, supervisor, wider context.",
+     "Distinction answer: three specific examples with traceable impact, including one where supervision changed your mind."],
+  ask:"Give me one example where supervision changed what you did in the next session."},
+ {id:"div",g:"prof",n:"Diversity and socio-cultural factors",src:"7CL504 rubric LO2; Loss and Depression lectures",refs:"Equality Act 2010; Crenshaw (1989); BACP (2026)",
+  p:["Nine protected characteristics (Equality Act 2010), plus class, money, education, neurotype, language and faith.",
+     "Anti-oppression is now a BACP principle. Notice the power in the room, including the power of your role. Name your own identity and how it may land with this client.",
+     "Intersectionality (Crenshaw, 1989): identities combine rather than add up.",
+     "Rubric: 70-79 diversity 'actively shapes practice'; 80-89 it is 'central to formulation and intervention' and power is 'critically examined'; 90+ it is 'explored with nuance'."],
+  ask:"How did your identity, and the power that comes with your role, affect this relationship?"}
+];
+
+const CARDS = [
+ ["pca","Name Rogers' six necessary and sufficient conditions.","1 Psychological contact. 2 Client incongruent. 3 Therapist congruent. 4 Unconditional positive regard. 5 Empathic understanding of the client's frame of reference. 6 Client perceives 4 and 5 to a minimal degree (Rogers, 1957)."],
+ ["pca","What is a condition of worth?","An evaluation from others ('I am only acceptable if...') that the person takes in as their own, usually out of awareness. It pushes them to deny or distort experience that does not fit."],
+ ["pca","Define incongruence.","A gap between the self-concept and organismic experience. It shows as anxiety and tension, and is where PCA says problems start."],
+ ["pca","Internal versus external locus of evaluation?","Internal: judging by your own organismic valuing. External: judging by others' approval. Conditions of worth push towards external."],
+ ["pca","Three parts of the self-concept?","Self-image, self-esteem, ideal self."],
+ ["cbt","Three levels of cognition in CBT?","Automatic thoughts; intermediate beliefs (rules, attitudes, assumptions); core beliefs."],
+ ["cbt","Give an example of each level of cognition.","NAT: 'I can't do this.' Assumption: 'If I don't work hard, I will fail.' Rule: 'I should be great at everything.' Core belief: 'I am inadequate.'"],
+ ["cbt","Ellis's ABC?","Activating event, Belief (rational or irrational), Consequence (emotion and behaviour). The belief, not the event, drives the consequence."],
+ ["cbt","Name six thinking errors.","All-or-nothing, catastrophising, discounting the positive, emotional reasoning, labelling, mind reading. Also overgeneralisation, personalisation, should/must, mental filter."],
+ ["cbt","CBT session structure?","Mood check, bridge, agenda, work on agenda, action plan, summary, feedback."],
+ ["dep","Beck's cognitive triad?","Negative view of self, the world and the future."],
+ ["at","Ainsworth's infant classifications, and who added the fourth?","Secure, insecure-avoidant, insecure-ambivalent (Ainsworth et al., 1978). Disorganised added by Main and Solomon (1990)."],
+ ["at","Who created the four-category self/other model of adult attachment?","Bartholomew and Horowitz (1991): secure, preoccupied, dismissing, fearful. Not Ainsworth."],
+ ["at","What is an internal working model?","A template of self and others built from early care: 'Am I worthy of care? Are others available?' It shapes expectations in later relationships, therapy included."],
+ ["at","What does the Adult Attachment Interview focus on?","How the person tells their attachment story (coherence) more than what happened. Codes: secure-autonomous, dismissing, preoccupied, plus unresolved."],
+ ["at","Two dimensions of adult attachment?","Attachment anxiety and attachment avoidance (Brennan, Clark and Shaver, 1998)."],
+ ["at","What did Harlow's monkeys show?","Infants preferred the cloth mother (contact comfort) to the wire mother with milk. Attachment is not just about food."],
+ ["integ","Integration versus eclecticism?","Integration combines theories into one coherent framework. Eclecticism picks techniques that work without adopting their theory."],
+ ["integ","Bordin's three parts of the working alliance?","Bond, agreement on goals, agreement on tasks (Bordin, 1979)."],
+ ["ttm","The TTM stages in order?","Precontemplation, contemplation, preparation, action, maintenance (with relapse)."],
+ ["ttm","The five TTM levels of change?","Symptom or situational; maladaptive cognitions; current interpersonal conflicts; family or systems conflicts; intrapersonal conflicts."],
+ ["ttm","Which processes of change suit the early stages?","Consciousness raising, dramatic relief, environmental re-evaluation; then self-re-evaluation as contemplation moves towards preparation."],
+ ["ttm","Which processes suit action and maintenance?","Self-liberation (into action), counterconditioning, stimulus control, contingency management, helping relationship."],
+ ["ttm","One main criticism of the TTM?","Stage boundaries are arbitrary and the evidence for stage-matched interventions is mixed (West, 2005)."],
+ ["basic","What does BASIC ID stand for?","Behaviour, Affect, Sensation, Imagery, Cognition, Interpersonal, Drugs and Biology (Lazarus, 1981)."],
+ ["basic","Tracking versus bridging?","Tracking: noting the order a client's modalities fire. Bridging: joining the client's preferred modality before moving to another."],
+ ["padesky","The five parts of the Padesky model?","Environment or situation, thoughts, emotions, physical reactions, behaviour."],
+ ["padesky","What is a formulation, in one sentence?","A shared, revisable hypothesis about what causes and maintains the client's problems, used to plan the work."],
+ ["assess","Name four outcome measures from your teaching.","CORE-OM (or CORE-10), GAD-7, BDI-II, BAI."],
+ ["assess","Two pros and two cons of DSM or ICD diagnosis?","Pros: shared language with other professions; can guide questions and interventions. Cons: labelling; cookbook treatment and narrower questioning."],
+ ["risk","Five steps of risk assessment?","Identify the risk; decide who may be harmed and how; evaluate and act; record; review."],
+ ["risk","What does NICE (2022) say about risk assessment tools?","Do not use them to predict future suicide or self-harm, or to decide who gets care. They can support a conversation."],
+ ["keep","Parts of a Keep Well (safety) plan?","Warning signs; own coping strategies; distracting people and places; people to ask for help; professional and crisis contacts; making the environment safe."],
+ ["suds","Who developed SUDS and how do you use it?","Wolpe. The client rates distress 0-10 or 0-100: baseline early, then before and after each intervention."],
+ ["wot","Window of Tolerance: who, and what is outside it?","Siegel (1999). Above the window: hyperarousal. Below: hypoarousal."],
+ ["dts","The three systems in Gilbert's model?","Threat (protection), drive (achievement and resources), soothe (safeness and connection)."],
+ ["sotb","Who coined 'slamming on the brakes' and what does it mean?","Babette Rothschild (2000). Stopping the content at once to bring arousal down before it floods or tips into dissociation."],
+ ["dual","What is dual awareness?","Holding the safe, embodied present and the memory at the same time, so the client is not swallowed by the past (Rothschild)."],
+ ["ground","The 5-4-3-2-1 grounding steps?","Five things you see, four you can touch, three you hear, two you smell, one you taste. Then ask how they are."],
+ ["anx","State versus trait anxiety?","State: the reaction now. Trait: the general tendency to perceive threat."],
+ ["anx","What keeps anxiety going, in CBT terms?","Overestimating danger, underestimating coping, and avoidance and safety behaviours that block disconfirming evidence."],
+ ["dep","Define behavioural activation.","A structured increase in activities that bring the person into contact with reward, to improve mood, thinking and quality of life."],
+ ["grief","The two orientations in the Dual Process Model?","Loss orientation (grief work, yearning) and restoration orientation (adjusting to a changed life). Healthy grief oscillates between them (Stroebe and Schut, 1999)."],
+ ["grief","Bowlby's phases of grief?","Numbing; yearning and protest; despair; reorganisation."],
+ ["grief","Kübler-Ross's five stages?","Denial, anger, bargaining, depression, acceptance. Not linear."],
+ ["grief","Tonkin's model in one line?","Grief stays the same size; life grows around it."],
+ ["grief","ICD-11 prolonged grief disorder time frame?","At least six months after the loss, and beyond the person's cultural and religious norms."],
+ ["grief","What is disenfranchised grief?","Grief that society does not recognise or allow, for example a job loss, an ex-partner, or restricted funerals during COVID (Doka, 1989)."],
+ ["se","Fennell's low self-esteem cycle, in order?","Early experience, bottom line, rules for living, trigger, bottom line activated, negative predictions and self-critical thoughts, unhelpful behaviour, bottom line confirmed."],
+ ["aces","The key ACE study figures?","Felitti et al. (1998), about 17,000 adults: 67% had at least one ACE; 12.6% had four or more."],
+ ["aces","Three criticisms of the ACE framework?","It misses individual differences, protective factors, and adversity outside the household."],
+ ["trauma","Herman's three stages of recovery?","Safety; remembrance and mourning; reconnection (Herman, 1992)."],
+ ["trauma","The five Fs?","Fight, flight, freeze, flop, friend."],
+ ["trauma","The three Es of trauma?","Event, experience, effects (SAMHSA, 2014)."],
+ ["trauma","What does ICD-11 complex PTSD add to PTSD?","Problems with emotion regulation, a negative self-concept, and relationship difficulties."],
+ ["shame","Shame versus guilt?","Guilt: 'I did something bad.' Shame: 'I am bad.'"],
+ ["shame","Nathanson's four responses to shame?","Attack self, withdraw, attack other, avoidance."],
+ ["socr","Padesky's four stages of Socratic dialogue?","Informational questions, empathic listening, summaries, analytical or synthesising questions."],
+ ["restr","What is the downward arrow for?","Repeated 'what would that mean?' questions to move from a situation-specific thought to the core belief underneath."],
+ ["be","Five steps of a behavioural experiment?","Present the rationale, make a prediction, set up the experiment, record the outcome, review and summarise."],
+ ["attint","The four BABI areas?","Secure base; exploration and fun; loss; healthy protest and anger (Holmes, 2001)."],
+ ["attint","Drama triangle roles and their winner's versions?","Victim, persecutor, rescuer (Karpman, 1968). Winner's triangle: vulnerable, assertive, caring (Choy, 1990)."],
+ ["attint","Who developed the ecomap?","Ann Hartman (1978)."],
+ ["pcaint","The four panes of the Johari window?","Open, blind, hidden, unknown (Luft and Ingham, 1955)."],
+ ["bacp","When does the BACP Ethical Framework 2026 take effect?","1 November 2026."],
+ ["bacp","Name the 12 ethical principles (BACP 2026).","Confidentiality, honesty, transparency, do no harm, best interest, respect, fairness, anti-oppression, trust, collaboration, compassion, integrity."],
+ ["bacp","The four core responsibilities?","Build appropriate relationships; keep ourselves and those using our services safe; understand and act on our legal and professional responsibilities; deliver services to expected professional standards."],
+ ["conf","Three areas where you must disclose without telling the client?","Terrorism, money laundering, drug trafficking."],
+ ["conf","Mitchels and Bond's four tests for breaking confidentiality?","Degree of risk, seriousness of the harm, imminence, effectiveness of disclosure."],
+ ["rec","Recording length limits for the exam?","50-minute contract: 48 to 52 minutes. 60-minute contract: 58 to 62 minutes."],
+ ["rec","Recording storage limits?","Upload within 48 hours. At most 2 recordings per client and 10 in total on OneDrive."],
+ ["sup","Proctor's three supervision functions?","Normative, formative, restorative."],
+ ["nd","What is the double empathy problem?","Milton (2012): breakdowns between autistic and non-autistic people are a two-way mismatch, not a one-sided deficit."],
+ ["div","The nine protected characteristics?","Age, disability, gender reassignment, marriage and civil partnership, pregnancy and maternity, race, religion or belief, sex, sexual orientation (Equality Act 2010)."]
+].map((c,i)=>({id:"c"+i,t:c[0],q:c[1],a:c[2]}));
+
+const LO = {
+ LO1:{n:"LO1 Defend theory and practice decisions within a professional, ethical and legal context",
+  bands:[["50-59","Basic use of core models (Padesky, BASIC ID). Ethics mentioned but not explored. Some rationale but thin. Hesitant answers. Little adaptation to context."],
+         ["60-69","Clear rationale using several models (Padesky, BASIC ID, Drive-Threat-Soothe, trauma or anxiety). Ethical awareness (safety plan, risk). Moderate confidence. Some guidelines and outcome measures (CORE-OM)."],
+         ["70-79","Strong integration of models with the client. Ethics and law well put. Confident answers. Therapy clearly adapted to context and constraints."],
+         ["80-89","Excellent integration of diverse models. Ethics critically reflected on, with dual awareness. Deep understanding. Guidelines and outcome measures embedded in the rationale."],
+         ["90+","Seamless integration of complex models. Sophisticated ethical and legal awareness. Articulate, insightful, robust answers. Precise adaptation to context."]]},
+ LO2:{n:"LO2 Conceptualise complex problems integratively, including diversity, socio-cultural factors and the relationship",
+  bands:[["50-59","Basic application of PCA, CBT and AT. Diversity mentioned with little effect on practice. Limited reflection on relational dynamics. Some core concepts (CoW)."],
+         ["60-69","Good integration of theory with the client's experience. Diversity shapes some decisions. Reflective awareness of the therapist's role. Core beliefs and maladaptive assumptions used."],
+         ["70-79","Strong conceptualisation with clear links from theory to the client. Diversity and socio-cultural factors actively shape practice. Relational dynamics explored, including the therapist's personality and lens. Ethical sensitivity."],
+         ["80-89","Excellent depth. Diversity and identity central to formulation and intervention. Deep reflection on the therapist's influence. Power dynamics and inclusivity critically examined."],
+         ["90+","Exceptional insight. Diversity and relational dynamics explored with nuance. Seamless theory. Sophisticated understanding of how socio-cultural awareness shapes the relationship and decisions."]]},
+ LO3:{n:"LO3 Structured, research-based integrative interventions adapted to the client",
+  bands:[["50-59","Basic techniques, limited justification. Some adaptation. Supervision mentioned but not linked to practice. Over-reliance on cognitive techniques."],
+         ["60-69","Evidence-based interventions explained and justified across modalities. Supervision used to reflect and improve. Techniques such as SUDS, Socratic questioning, compassion exercises."],
+         ["70-79","Strong techniques with emotional depth (immediacy, staying with salient points). Adapted to the client and constraints. Supervision clearly informs decisions and ethics."],
+         ["80-89","Excellent integration of research-based interventions. Emotional processing and presence evident. Supervision enhances ethical and clinical decisions. Secure base and attunement shown."],
+         ["90+","Exceptional synthesis of theory and practice. Deeply personalised, attuned interventions. Supervision used reflexively. Sophisticated use of silence, immediacy and emotional processing."]]}
+};
+
+const VIVA = [
+ {id:"v1",lo:"LO1",six:"High risk",q:"There is a moment where your client says something painful and you move on. What stopped you going there?",
+  look:["Name the moment exactly (minute and words)","Say honestly what happened in you, including the pull to rescue or fix","Link it to your own conditions of worth or attachment pattern","Say what you do now instead (the brake, the six-count, one stay)","Show it went to supervision or personal therapy"],
+  tip:"Do not give a clever clinical reason for the avoidance. It reads as defensive. Honest self-awareness scores higher."},
+ {id:"v2",lo:"LO2",six:"Medium risk",q:"How would you work with shame or guilt?",
+  look:["Separate shame from guilt","Integrate CoW (PCA), IWM (AT) and core beliefs (CBT)","Use drive, threat and soothe to explain shame as a threat response","Pace it: SUDS, window of tolerance, TTM stage","Name a concrete intervention (compassionate letter, friend exercise) and its evidence"]},
+ {id:"v3",lo:"LO3",six:"High risk",q:"How would you work with attachment more explicitly with this client?",
+  look:["Give the exact question you would ask, not the theory","Use BABI or 'Who, if anyone, met that need for you?'","Link the client's style to how they relate to you","Use the relationship itself (immediacy) as the attachment intervention","Mention pacing and safety"]},
+ {id:"v4",lo:"LO1",six:"Strong",q:"What would you do differently?",
+  look:["Specific, time-stamped moments","A named alternative and why it fits better","One thing you got wrong that nobody told you","A link to a development theme you are already working on"]},
+ {id:"v5",lo:"LO3",six:"Strongest",q:"How did supervision shape this work?",
+  look:["Three specific examples","A traceable change in the next session","One time supervision changed your mind","Name the supervision function or model if it helps"]},
+ {id:"v6",lo:"LO3",six:"Strong",q:"What is your understanding of [one of your interventions] and its evidence base?",
+  look:["Define the intervention clearly","Cite evidence honestly (a review or trial)","Name its limits, especially for neurodivergent clients","Say how you adapted it for this client"]},
+ {id:"v7",lo:"LO1",q:"Why these two interventions, at this point in therapy?",
+  look:["State the TTM stage beforehand, with evidence","Match the intervention to the stage and level of change","Link both to the formulation","Show the client moved (SUDS, their words, a measure)"]},
+ {id:"v8",lo:"LO1",q:"Your client was in contemplation. Why use an action-stage task?",
+  look:["Own the mismatch if there was one","Name the stage-matched alternative (consciousness raising, pros and cons)","Say how you checked readiness","What supervision said"]},
+ {id:"v9",lo:"LO1",q:"Talk me through your ongoing risk assessment.",
+  look:["Baseline and ongoing, not one-off","Risk factors and protective factors","Medication","A Keep Well plan written together and reviewed","What would trigger disclosure, and who you would tell first"]},
+ {id:"v10",lo:"LO1",q:"Which ethical principles were in tension in this case, and how did you decide?",
+  look:["Two of the 12 BACP 2026 principles in tension (for example respect and do no harm)","Walk through the six rationale questions","Show collaboration with the client","Supervision and record keeping"]},
+ {id:"v11",lo:"LO1",q:"How did your outcome measures shape the work?",
+  look:["Name the measure and the scores over time","What you changed because of them","Limits of self-report","Link to the client's own goals"]},
+ {id:"v12",lo:"LO1",q:"BASIC ID comes from technical eclecticism. How does it sit inside your integrative model?",
+  look:["Know Lazarus was a technical eclectic","Assessment map versus theory of change","Show it fed an integrative formulation","Critical point: breadth versus depth"]},
+ {id:"v13",lo:"LO1",q:"You had a limited number of sessions. How did that shape your plan?",
+  look:["Brief-therapy structure","Stage-appropriate goals","Endings planned from the start","What you chose not to open, and why"]},
+ {id:"v14",lo:"LO2",q:"Give me your formulation in 60 seconds, using all three theories.",
+  look:["Predisposing, precipitating, perpetuating, protective","CoW and self-concept","IWM and attachment style","Core belief, UMAs and NATs","One sentence on the maintenance cycle"]},
+ {id:"v15",lo:"LO2",q:"Where are the conditions of worth, and where did they come from?",
+  look:["The condition in the client's own words","Its origin (who, when)","Link to a CBT rule for living","How it played out in the relationship with you"]},
+ {id:"v16",lo:"LO2",q:"How did your identity, and the power of your role, affect the relationship?",
+  look:["Name your own identity factors honestly","Power of role, gender, class, professional status","The BACP 2026 anti-oppression principle","One thing you did differently because of it"]},
+ {id:"v17",lo:"LO2",q:"What socio-cultural factors shaped the presenting problem?",
+  look:["Beyond protected characteristics: money, work, housing, community","How culture shapes how distress is expressed","How it changed your intervention","Intersectionality"]},
+ {id:"v18",lo:"LO2",q:"What did you notice in yourself in the room?",
+  look:["Name a countertransference feeling","Link to the drama triangle (rescuer) if it fits","How you used it (immediacy, supervision)","Awareness of self and client at the same time"]},
+ {id:"v19",lo:"LO2",q:"If this client had a trauma history, what would you do differently?",
+  look:["Phase-based: stabilise first","Safety toolkit: SUDS, WoT, slamming on the brakes, dual awareness, grounding","Process the impact, not the memory","Re-contract for trauma work"]},
+ {id:"v20",lo:"LO2",q:"How would your work change if the presenting issue were grief?",
+  look:["Dual Process Model oscillation","Bowlby's phases and attachment","Tonkin for psychoeducation","Attachment-informed pacing (avoidant versus anxious)","Prolonged grief criteria and culture"]},
+ {id:"v21",lo:"LO3",q:"Show me where you slammed on the brakes.",
+  look:["The exact moment","Why then","SUDS before and after","Contracted in advance"]},
+ {id:"v22",lo:"LO3",q:"Walk me through all four stages of Socratic questioning from your transcript.",
+  look:["Informational questions, quoted","Empathic listening or reflection","A summary","A synthesising question and the client's new view"]},
+ {id:"v23",lo:"LO3",q:"How did you know the client was inside their window of tolerance?",
+  look:["Observable signs (breathing, speech, eye contact)","SUDS","Verbal check-ins","What you would have done at amber or red"]},
+ {id:"v24",lo:"LO3",q:"Where did you use silence, and what happened?",
+  look:["A timed example","What the client did with it","Your own experience of the silence","Link to the client's frame of reference (PCA)"]},
+ {id:"v25",lo:"LO3",q:"How did you end the session?",
+  look:["No new material near minute 50","A summary and a focus for next time","Grounding","A final SUDS check","A clear ending"]},
+ {id:"v26",lo:"LO3",q:"What homework did you set, and how did attachment style affect completion?",
+  look:["Modelled in session first","Matched to the TTM stage","An attachment lens on non-completion","No shame if it was not done"]},
+ {id:"v27",lo:"LO3",q:"Where was immediacy in this session?",
+  look:["Define immediacy","An example, or a missed chance","What it would have opened","Rupture and repair"]},
+ {id:"v28",lo:"LO3",q:"How did you adapt an intervention for this specific client?",
+  look:["The standard version","What you changed and why (neurotype, culture, stage)","Evidence that it helped"]},
+ {id:"v29",lo:"LO1",q:"Your client takes medication. How did that shape your work?",
+  look:["Asked and recorded at assessment","Side effects and their effect on the presentation","Risk, including access to medication","Liaison with the GP within consent","Staying within competence"]},
+ {id:"v30",lo:"LO1",q:"The client discloses a risk to a child in minute 45. What happens next?",
+  look:["Stay calm, contain, explore","Explain the limits of confidentiality as contracted","Tell the safeguarding lead or placement manager, then your supervisor","Record facts, times and rationale","Look after the client and end safely"]}
+];
+
+const FIVE = [["Moment","Name it exactly: the minute and the words."],["Reason","What you aimed for, tied to the TTM stage and the formulation."],["Theory","One line each: PCA, CBT, AT."],["Safety and ethics","SUDS, window of tolerance, a BACP 2026 principle."],["Learning","What supervision said, and what you do now."]];
+
+const CASE_ITEMS = ["Case introduction (state that the name is fictitious)","Presenting issues","Assessment and outcome measures","Risk assessment and contract (include medication)","Structure of therapy before the recording, with rationale","Intervention 1: TTM stage, ICP links, evidence, quotes, safety","Intervention 2: TTM stage, ICP links, evidence, quotes, safety","Summary of PCA, CBT and AT applied to this client","Diversity and socio-cultural factors","Complicating factors, ethics and law (BACP 2026)","Supervision: specific examples and impact","Strengths, weaknesses and lessons learned"];
+const SLIDES = [
+ {id:"c1",n:"Case 1 (15 minutes)",items:CASE_ITEMS},
+ {id:"c2",n:"Case 2 (15 minutes)",items:CASE_ITEMS},
+ {id:"must",n:"Tutor's must-include slides (Week 5 list)",note:"Include these even if your clients do not have trauma, anxiety or depression, to show how you would work if they did.",items:["Anxiety models","Depression models","Grief models","Self-esteem models","ACEs models","Drive, threat and soothe","Slamming on the brakes","SUDS","Window of tolerance","Neurodiversity slide","Dual awareness model","Chart of interventions and the rationale for each","Terminology of theories","Keep Well plan","TTM","Case formulation","BASIC ID","Risk assessment"]},
+ {id:"sub",n:"Submission and the day",items:["Case studies submitted by 12:00, 20 April 2027","OneDrive folder shared with Jazz Kang, Sara Almasifard and Tim Dalton","Recordings inside the time limits, start and end included, audio clear","Consent, contract, assessment, risk assessment and safety plan uploaded for both clients","Padesky, BASIC ID, TTM and interventions table uploaded for both clients","Slides submitted by 12:00, 14 May 2027","Student placement review form submitted by 12:00, 14 May 2027","No identifiable details and no placement name anywhere","Your name on every submission","Each case rehearsed to 15 minutes","Three printed copies, two slides per page","Slides on a memory stick, plus login details"]}
+];
+
+const PLAN = [
+ {id:"p1",n:"Lay the foundations",from:"2026-10-26",to:"2027-01-03",when:"26 Oct 2026 to 3 Jan 2027",
+  acts:["Count the Development Plan metrics on your two 7CL501 recordings. That is your baseline.","Read the final BACP 2026 framework (in force 1 November) and learn the 12 principles.","Rate every syllabus topic red, amber or green once.","Three short blocks a week: 15 flashcards, one topic deep-dive, one viva question out loud.","Hand in 7CL503 work. The 7CL504 handbook lists 5 January 2027 for PG Diploma semester 1; check your 7CL503 brief."]},
+ {id:"p2",n:"Choose your cases",from:"2027-01-04",to:"2027-02-01",when:"4 Jan to 1 Feb 2027",
+  acts:["Shortlist three clients who could give two strong, consented, face-to-face recordings.","Check consent, contract, assessment and safety plan are on file for each.","Turn every red topic amber.","Drill the six predicted questions, one a week, and mark each one."]},
+ {id:"p3",n:"Record and audit",from:"2027-02-02",to:"2027-03-21",when:"2 Feb to 21 Mar 2027",
+  acts:["7CL504 teaching starts 2 February. Bring questions to the 9 February tutorial.","Record sessions and run your two-minute post-session audit after each.","Pick the two recordings (48-52 or 58-62 minutes).","Take each chosen recording to supervision.","Draft the appendices: Padesky, BASIC ID, TTM, interventions table."]},
+ {id:"p4",n:"Write the case studies",from:"2027-03-22",to:"2027-04-20",when:"22 Mar to 20 Apr 2027",
+  acts:["Write two case studies of 3,000 words each (plus or minus 10%).","Work IWMs, CoWs and UMAs to depth. This was the one written criticism in both 7CL501 papers.","Complete the OneDrive pack and share it with all three tutors.","Submit by 12:00 on 20 April 2027."]},
+ {id:"p5",n:"Build the presentation",from:"2027-04-21",to:"2027-05-14",when:"21 Apr to 14 May 2027",
+  acts:["Build the slides from the checklist tab, including every must-include model.","Time each case at 15 minutes.","Submit slides and the student placement review by 12:00 on 14 May 2027."]},
+ {id:"p6",n:"Rehearse under pressure",from:"2027-05-15",to:"2027-05-24",when:"15 to 24 May 2027",
+  acts:["Run three timed mock vivas: a peer, your supervisor if willing, and the marker on this page.","Print three copies, two slides per page.","Attend the 18 May clinical exam tutorials."]},
+ {id:"p7",n:"Exam window",from:"2027-05-25",to:"2027-06-24",when:"25 May to 24 Jun 2027",
+  acts:["Check Blackboard for your slot and room.","Pack the memory stick, login details and printed copies.","Ground yourself before you go in."]}
+];
+
+/* ---------- STATE ---------- */
+const KEY = "rks-7cl504-coach-v1";
+const blank = () => ({conf:{},cards:{},slides:{},plan:{},viva:{},updated:0});
+let S = blank();
+try { const l = JSON.parse(localStorage.getItem(KEY) || "null"); if (l) S = Object.assign(blank(), l); } catch (e) {}
+let remote = null, writing = false, again = false, tmr = null;
+function setSync(t){ const el=document.getElementById("sync"); if(el) el.textContent=t; }
+async function pushRemote(){
+  if (!remote) return;
+  if (writing) { again = true; return; }
+  writing = true;
+  try { await remote.set(JSON.parse(JSON.stringify(S))); setSync("Saved to your account"); }
+  catch (e) { setSync("Saved on this device only"); }
+  writing = false;
+  if (again) { again = false; pushRemote(); }
+}
+function save(){
+  S.updated = Date.now();
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+  clearTimeout(tmr); tmr = setTimeout(pushRemote, 1200);
+}
+let sampleFn = null;
+
+/* ---------- HELPERS ---------- */
+function $(s, r){ return (r || document).querySelector(s); }
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const topicById = id => TOPICS.find(t => t.id === id);
+const DAY = 864e5;
+function daysTo(d){ return Math.ceil((d - Date.now()) / DAY); }
+function todayISO(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+const PRI = ["sotb","suds","at","attint","pcaint","shame","socr","wot","ttm","ground","sup","dual","dts","div","bacp","risk","padesky","be"];
+const priOf = id => { const i = PRI.indexOf(id); return i < 0 ? 99 : i; };
+function seedRed(){ if (S.seeded) return false; TOPICS.forEach(t => { if (!S.conf[t.id]) S.conf[t.id] = "r"; }); S.seeded = 1; return true; }
+function currentPhase(){ const t=todayISO(); return PLAN.find(p => t>=p.from && t<=p.to) || (t < PLAN[0].from ? PLAN[0] : PLAN[PLAN.length-1]); }
+function confCounts(list){ const c={g:0,a:0,r:0,n:0}; list.forEach(t => c[S.conf[t.id]||"n"]++); return c; }
+function barHTML(c, total){ const w=k=> (c[k]/total*100).toFixed(1)+"%"; return `<div class="bar" role="img" aria-label="${c.g} green, ${c.a} amber, ${c.r} red, ${c.n} not rated"><span class="g" style="width:${w("g")}"></span><span class="a" style="width:${w("a")}"></span><span class="r" style="width:${w("r")}"></span></div>`; }
+const RAGLABEL = {r:"Red",a:"Amber",g:"Green"};
+
+/* ---------- CLOCKS ---------- */
+function renderClocks(){
+  const items = [["Case studies",DATES.cs],["Slides",DATES.slides],["Exam window",DATES.examStart]];
+  $("#clocks").innerHTML = items.map(([n,d]) => { const x=daysTo(d); return `<span class="clock">${n} <b>${x>0?x:"0"}</b> days</span>`; }).join("");
+}
+
+/* ---------- TODAY ---------- */
+function renderToday(){
+  const ph = currentPhase();
+  const open = ph.acts.map((a,i)=>({a,i,done:!!S.plan[ph.id+"_"+i]})).filter(x=>!x.done).slice(0,3);
+  const order = {r:0,n:1,a:2,g:3};
+  const shaky = TOPICS.slice().sort((x,y)=> (order[S.conf[x.id]||"n"]-order[S.conf[y.id]||"n"]) || (priOf(x.id)-priOf(y.id))).slice(0,3);
+  const dayN = Math.floor(Date.now()/DAY);
+  const vq = VIVA[dayN % VIVA.length];
+  const cc = confCounts(TOPICS);
+  const known = CARDS.filter(c=>S.cards[c.id]==="g").length;
+  const answered = Object.keys(S.viva).filter(k=>S.viva[k] && (S.viva[k].a||"").trim()).length;
+  $("#p-today").innerHTML = `
+    <div class="panel" style="gap:8px">
+      <span class="eyebrow">Where you are</span>
+      <h2>${esc(ph.n)}</h2>
+      <p class="lede">${esc(ph.when)}. The exam has two jobs: answering cold questions on Year 1 and 2 content, and defending your own clinical choices live. Your evidence says marks leak in the second job, so the viva drill carries more weight than the flashcards.</p>
+    </div>
+    <div class="grid2" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,400px),1fr))">
+      <div class="panel">
+        <span class="eyebrow">Next actions</span>
+        ${open.length ? `<ol class="al">${open.map(x=>`<li><label class="row" style="align-items:flex-start;flex-wrap:nowrap"><input type="checkbox" data-plan="${ph.id}_${x.i}" style="margin-top:5px;accent-color:var(--accent)"> <span>${esc(x.a)}</span></label></li>`).join("")}</ol>` : `<p>Every action in this phase is ticked. Look ahead on the Plan tab.</p>`}
+      </div>
+      <div class="panel">
+        <span class="eyebrow">Shakiest topics</span>
+        <p class="small muted">Everything starts red. Ties go to the topics your 7CL501 marker flagged most.</p>
+        <ol class="al">${shaky.map(t=>`<li><span class="row"><button class="btn" style="padding:4px 10px" data-goto-topic="${t.id}">${esc(t.n)}</button><span class="pill ${S.conf[t.id]||""}">${S.conf[t.id]?RAGLABEL[S.conf[t.id]]:"Not rated"}</span></span></li>`).join("")}</ol>
+      </div>
+      <div class="panel">
+        <span class="eyebrow">Viva question of the day</span>
+        <p style="font-family:var(--display);font-weight:600;font-size:1.1rem">${esc(vq.q)}</p>
+        <div class="row"><span class="pill">${vq.lo}</span>${vq.six?`<span class="pill a">Predicted · ${esc(vq.six)}</span>`:""}</div>
+        <div><button class="btn primary" data-goto-viva="${vq.id}">Answer it now</button></div>
+      </div>
+      <div class="panel">
+        <span class="eyebrow">Progress</span>
+        <p><b class="mono">${cc.g}</b> of ${TOPICS.length} topics green · <b class="mono">${cc.r}</b> red · <b class="mono">${cc.n}</b> not rated</p>
+        ${barHTML(cc, TOPICS.length)}
+        <p><b class="mono">${known}</b> of ${CARDS.length} flashcards marked 'Got it'</p>
+        <p><b class="mono">${answered}</b> of ${VIVA.length} viva questions answered</p>
+      </div>
+    </div>`;
+}
+
+/* ---------- SYLLABUS ---------- */
+let openTopic = null;
+function renderSyllabus(){
+  const all = confCounts(TOPICS);
+  let h = `<div style="display:flex;flex-direction:column;gap:8px"><h2>Syllabus map</h2>
+    <p class="lede">Everything examiners can ask about from Year 1 and Year 2, drawn from your lecture slides. Rate each topic red, amber or green. Open a topic for the key points, the references and the question an examiner is likely to ask.</p>${barHTML(all,TOPICS.length)}</div>`;
+  GROUPS.forEach(g => {
+    const list = TOPICS.filter(t=>t.g===g.id), c = confCounts(list);
+    h += `<div class="group"><div class="ghead"><h3>${esc(g.name)}</h3><span class="small muted mono">${c.g} G · ${c.a} A · ${c.r} R · ${c.n} unrated</span></div>`;
+    list.forEach(t => {
+      const v = S.conf[t.id]||"", nCards = CARDS.filter(c=>c.t===t.id).length;
+      h += `<details class="topic ${v}" id="t-${t.id}" ${openTopic===t.id?"open":""}>
+        <summary><h3>${esc(t.n)}</h3>
+          <span class="rag" role="group" aria-label="Confidence">${["r","a","g"].map(k=>`<button class="${k}" aria-pressed="${v===k}" data-conf="${t.id}" data-v="${k}">${RAGLABEL[k]}</button>`).join("")}</span>
+        </summary>
+        <div class="body">
+          <ol class="al">${t.p.map(x=>`<li>${esc(x)}</li>`).join("")}</ol>
+          <div class="ask"><span class="eyebrow">An examiner might ask</span><p>${esc(t.ask)}</p></div>
+          <p class="small muted"><b>Source:</b> ${esc(t.src)}. <b>Key references:</b> ${esc(t.refs)}.</p>
+          ${nCards?`<div><button class="btn" data-cards-topic="${t.id}">Practise ${nCards} flashcard${nCards>1?"s":""}</button></div>`:""}
+        </div></details>`;
+    });
+    h += `</div>`;
+  });
+  $("#p-syllabus").innerHTML = h;
+}
+
+/* ---------- FLASHCARDS ---------- */
+let fcFilter = "all", fcMode = "weak", fcQueue = [], fcIdx = 0, fcShow = false;
+function buildQueue(){
+  let list = CARDS.filter(c => fcFilter==="all" || c.t===fcFilter || (fcFilter.startsWith("g:") && topicById(c.t).g===fcFilter.slice(2)));
+  if (fcMode==="weak") {
+    const rank = c => ({r:0, a:1, undefined:2, g:3})[S.cards[c.id]];
+    list = list.map(c=>({c,k:rank(c)+Math.random()*0.9})).sort((x,y)=>x.k-y.k).map(x=>x.c);
+  } else list = list.map(c=>({c,k:Math.random()})).sort((x,y)=>x.k-y.k).map(x=>x.c);
+  fcQueue = list; fcIdx = 0; fcShow = false;
+}
+function renderCards(){
+  if (!fcQueue.length) buildQueue();
+  const c = fcQueue[fcIdx];
+  const counts = {g:0,a:0,r:0}; CARDS.forEach(x=>{ const v=S.cards[x.id]; if(v) counts[v]++; });
+  const opts = `<option value="all">All topics (${CARDS.length})</option>` + GROUPS.map(g=>`<optgroup label="${esc(g.name)}"><option value="g:${g.id}">All of ${esc(g.name)}</option>${TOPICS.filter(t=>t.g===g.id && CARDS.some(x=>x.t===t.id)).map(t=>`<option value="${t.id}">${esc(t.n)}</option>`).join("")}</optgroup>`).join("");
+  $("#p-cards").innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:8px"><h2>Flashcards</h2>
+    <p class="lede">Say the answer out loud before you reveal it. Recall beats rereading. Mark each card honestly: the 'weakest first' order brings back what you missed.</p></div>
+    <div class="fc-tools">
+      <label class="small" for="fcTopic">Topic</label>
+      <select id="fcTopic">${opts}</select>
+      <label class="small" for="fcMode">Order</label>
+      <select id="fcMode"><option value="weak">Weakest first</option><option value="shuffle">Shuffle</option></select>
+      <span class="small muted mono">${counts.g} got · ${counts.a} shaky · ${counts.r} missed</span>
+    </div>
+    ${c ? `
+    <div class="flash" id="flash" tabindex="0" role="button" aria-label="Reveal answer">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="row"><span class="pill">${esc(topicById(c.t).n)}</span>${S.cards[c.id]?`<span class="pill ${S.cards[c.id]}">Last: ${({g:"Got it",a:"Shaky",r:"Missed"})[S.cards[c.id]]}</span>`:""}</div>
+        <p class="q">${esc(c.q)}</p>
+        ${fcShow ? `<p class="ans">${esc(c.a)}</p>` : ""}
+      </div>
+      <p class="hint">${fcShow ? "How did you do?" : "Tap or press space to reveal"} · card ${fcIdx+1} of ${fcQueue.length}</p>
+    </div>
+    ${fcShow ? `<div class="mark3"><button class="btn r" data-mark="r">Missed</button><button class="btn a" data-mark="a">Shaky</button><button class="btn g" data-mark="g">Got it</button></div>` : `<div class="row"><button class="btn primary" id="reveal">Reveal answer</button><button class="btn" id="skip">Skip</button></div>`}
+    ` : `<p>No cards for this filter.</p>`}`;
+  $("#fcTopic").value = fcFilter; $("#fcMode").value = fcMode;
+}
+
+/* ---------- VIVA ---------- */
+let vivaSel = VIVA[0].id, vivaLO = "all", timerStart = null, timerInt = null, markCtl = null;
+function vivaData(id){ return S.viva[id] || (S.viva[id] = {a:"",checks:[]}); }
+function renderViva(){
+  const q = VIVA.find(v=>v.id===vivaSel), d = S.viva[q.id] || {a:"",checks:[]};
+  const list = VIVA.filter(v => vivaLO==="all" || (vivaLO==="six" ? !!v.six : v.lo===vivaLO));
+  $("#p-viva").innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:8px"><h2>Viva drill</h2>
+    <p class="lede">Answer out loud first, against the timer, then type or dictate what you said. Tick what you covered, or copy a marking prompt to paste into Claude. Square brackets mean 'use your own case'.</p></div>
+    <div class="panel"><span class="eyebrow">The five-beat defence: use it for any 'why did you' question</span>
+      <div class="five">${FIVE.map((f,i)=>`<div><span class="mono small muted">${i+1}</span><b>${esc(f[0])}</b><span class="small">${esc(f[1])}</span></div>`).join("")}</div>
+    </div>
+    <div class="fc-tools"><label class="small" for="vivaLO">Show</label>
+      <select id="vivaLO"><option value="all">All ${VIVA.length} questions</option><option value="six">The six predicted questions</option><option value="LO1">LO1 Defend decisions</option><option value="LO2">LO2 Conceptualise</option><option value="LO3">LO3 Interventions</option></select>
+      <button class="btn" id="vivaRand">Random question</button></div>
+    <div class="grid2" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));align-items:start">
+      <div class="vlist" role="list">${list.map(v=>{ const vd=S.viva[v.id]; const m=vd&&vd.mark; return `<button class="vq" role="listitem" data-vq="${v.id}" aria-current="${v.id===vivaSel}">
+          <span class="row"><span class="pill">${v.lo}</span>${v.six?`<span class="pill a">Predicted · ${esc(v.six)}</span>`:""}${m!=null?`<span class="pill ${m>=70?"g":m>=60?"a":"r"}">${m}</span>`:(vd&&vd.a&&vd.a.trim()?`<span class="pill">Answered</span>`:"")}</span>
+          <span>${esc(v.q)}</span></button>`; }).join("")}</div>
+      <div class="panel vwork">
+        <span class="eyebrow" style="text-transform:none;letter-spacing:0">${esc(LO[q.lo].n)}</span>
+        <p style="font-family:var(--display);font-weight:600;font-size:1.2rem;line-height:1.3">${esc(q.q)}</p>
+        ${q.tip?`<p class="ask small">${esc(q.tip)}</p>`:""}
+        <div class="row"><span class="timer" id="timer">0:00</span><button class="btn" id="tStart">Start 2-minute timer</button><button class="btn" id="tStop">Stop</button></div>
+        <label class="small" for="vAns">What you said (type, or dictate into the box)</label>
+        <textarea id="vAns" placeholder="Answer as you would to the examiner...">${esc(d.a||"")}</textarea>
+        <details><summary class="small" style="cursor:pointer"><b>Self-mark: what a 70+ answer covers</b></summary>
+          <div class="checks" style="margin-top:8px">${q.look.map((l,i)=>`<label><input type="checkbox" data-look="${i}" ${(d.checks||[]).includes(i)?"checked":""}> <span>${esc(l)}</span></label>`).join("")}</div>
+        </details>
+        <div class="row"><button class="btn primary" id="markBtn">Copy marking prompt</button><button class="btn" id="markStop" hidden>Stop</button><span class="small muted" id="markNote"></span></div>
+        <div id="fb">${d.fb ? fbHTML(d.fb) : ""}</div>
+        <details><summary class="small" style="cursor:pointer">Rubric bands for ${q.lo}</summary>
+          <div class="tscroll" style="margin-top:8px"><table><thead><tr><th>Band</th><th>What it looks like</th></tr></thead><tbody>${LO[q.lo].bands.map(b=>`<tr><td class="mono">${b[0]}</td><td>${esc(b[1])}</td></tr>`).join("")}</tbody></table></div>
+        </details>
+      </div>
+    </div>`;
+  $("#vivaLO").value = vivaLO;
+  updateMarkBtn();
+}
+function fbHTML(f){
+  const m = Number(f.mark);
+  const cls = m>=70?"g":m>=60?"a":"r";
+  const list = (arr)=> (Array.isArray(arr)&&arr.length) ? `<ol class="al">${arr.map(x=>`<li>${esc(x)}</li>`).join("")}</ol>` : "<p class='muted'>None noted.</p>";
+  return `<div class="feedback">
+    <div class="row" style="justify-content:space-between"><span class="score" style="color:var(--${cls})">${isFinite(m)?m:"?"}</span><span class="pill ${cls}">${esc(f.band||"")}</span></div>
+    <div><span class="eyebrow">What landed</span>${list(f.hits)}</div>
+    <div><span class="eyebrow">What was missing</span>${list(f.gaps)}</div>
+    ${f.stronger?`<div><span class="eyebrow">Simplest stronger version</span><p>${esc(f.stronger)}</p></div>`:""}
+    ${f.followUp?`<div class="ask"><span class="eyebrow">Examiner follow-up</span><p>${esc(f.followUp)}</p></div>`:""}
+    <p class="small muted">Marked from your words only. Claude has not heard the recording.</p>
+  </div>`;
+}
+function updateMarkBtn(){
+  const b = $("#markBtn"), n = $("#markNote"); if (!b) return;
+  b.hidden = false;
+}
+async function markAnswer(){
+  const q = VIVA.find(v=>v.id===vivaSel), d = vivaData(q.id);
+  const ans = ($("#vAns").value||"").trim();
+  const note = $("#markNote");
+  if (ans.length < 40) { note.textContent = "Write at least a few sentences first."; return; }
+  const lo = LO[q.lo];
+  const prompt = `You are an examiner for the 7CL504 clinical exam on the MSc Integrative Counselling and Psychotherapy at the University of Derby. The course integrates the Person-Centred Approach, CBT and Attachment Theory, organised by the Transtheoretical Model, under the BACP Ethical Framework 2026 (12 principles: confidentiality, honesty, transparency, do no harm, best interest, respect, fairness, anti-oppression, trust, collaboration, compassion, integrity).
+
+Mark the candidate's spoken answer to one examiner question. You have not heard their recording, so judge only the answer as given and never invent client details. Square brackets in the question mean the candidate fills in their own case.
+
+Learning outcome: ${lo.n}
+Rubric bands:
+${lo.bands.map(b=>b[0]+": "+b[1]).join("\n")}
+
+What a 70+ answer to this question usually covers:
+${q.look.map((l,i)=>(i+1)+". "+l).join("\n")}
+${q.tip?"Marker's note: "+q.tip+"\n":""}
+Question: ${q.q}
+
+Candidate's answer:
+"""${ans.slice(0,6000)}"""
+
+Reply in exactly this format, in British English, plain and kind, without inflating the mark and without em dashes:
+Band and mark: <band from the rubric> and <mark 0-100>
+What landed: up to 4 short points labelled a, b, c, d
+What was missing: up to 4 short points labelled a, b, c, d
+Simplest stronger version: 2 to 4 sentences, in the first person, as the candidate would say it
+Examiner follow-up: the probing question an examiner would ask next`;
+  d.a = $("#vAns").value; save();
+  try { await navigator.clipboard.writeText(prompt); note.textContent = "Copied. Paste it into any Claude chat to get your mark."; }
+  catch (e) {
+    note.textContent = "Copy was blocked. Select the text below and copy it.";
+    $("#fb").innerHTML = '<textarea readonly style="min-height:220px" id="promptBox"></textarea>';
+    const pb = $("#promptBox"); pb.value = prompt; pb.focus(); pb.select();
+  }
+}
+function tick(){ const el=$("#timer"); if(!el||timerStart==null) return; const s=Math.floor((Date.now()-timerStart)/1000); el.textContent=Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); el.classList.toggle("over", s>=120); }
+
+/* ---------- SLIDES ---------- */
+function renderSlides(){
+  let h = `<div style="display:flex;flex-direction:column;gap:8px"><h2>Slide checklist</h2>
+    <p class="lede">The presentation structure from the 7CL504 brief and the Semester 2 structure sheet, the tutor's must-include list from the Week 5 trauma lecture, and everything you need on the day. The slides must match the recordings: examiners compare them.</p></div><div class="grid2">`;
+  SLIDES.forEach(s => {
+    const done = s.items.filter((_,i)=>S.slides[s.id+"_"+i]).length;
+    h += `<div class="panel"><div class="row" style="justify-content:space-between"><h3>${esc(s.n)}</h3><span class="pill ${done===s.items.length?"g":""}">${done}/${s.items.length}</span></div>
+      ${s.note?`<p class="small muted">${esc(s.note)}</p>`:""}
+      <div class="checks">${s.items.map((it,i)=>`<label><input type="checkbox" data-slide="${s.id}_${i}" ${S.slides[s.id+"_"+i]?"checked":""}> <span>${esc(it)}</span></label>`).join("")}</div></div>`;
+  });
+  $("#p-slides").innerHTML = h + `</div>`;
+}
+
+/* ---------- PLAN ---------- */
+function renderPlan(){
+  const cur = currentPhase();
+  $("#p-plan").innerHTML = `<div style="display:flex;flex-direction:column;gap:8px"><h2>Plan to June 2027</h2>
+    <p class="lede">Seven phases, built on the 7CL504 key dates. Weekly rhythm: three short blocks (15 flashcards, one topic, one viva question out loud) plus your Development Plan drills in every session.</p></div>
+    <div>${PLAN.map(p=>`<div class="phase ${p.id===cur.id?"now":""}"><div class="when">${esc(p.when)}${p.id===cur.id?"<br><b>Now</b>":""}</div>
+      <div style="display:flex;flex-direction:column;gap:8px"><h3>${esc(p.n)}</h3>
+      <div class="checks">${p.acts.map((a,i)=>`<label><input type="checkbox" data-plan="${p.id}_${i}" ${S.plan[p.id+"_"+i]?"checked":""}> <span>${esc(a)}</span></label>`).join("")}</div></div></div>`).join("")}</div>`;
+}
+
+/* ---------- ROUTING & EVENTS ---------- */
+const TABS = ["today","syllabus","cards","viva","slides","plan"];
+let tab = "today";
+function show(t, push=true){
+  if (!TABS.includes(t)) t = "today";
+  tab = t;
+  document.querySelectorAll("#tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab===t));
+  TABS.forEach(x => { $("#p-"+x).hidden = x!==t; });
+  renderTab(t);
+  if (push) { try { history.replaceState(null,"","#"+t); } catch(e){} }
+  try { localStorage.setItem(KEY+"-tab", t); } catch(e){}
+  window.scrollTo({top:0});
+}
+function renderTab(t){ ({today:renderToday,syllabus:renderSyllabus,cards:renderCards,viva:renderViva,slides:renderSlides,plan:renderPlan})[t](); }
+function renderAll(){ renderClocks(); renderTab(tab); }
+
+document.getElementById("tabs").addEventListener("click", e => { const b=e.target.closest("button[data-tab]"); if(b) show(b.dataset.tab); });
+document.addEventListener("click", e => {
+  const conf = e.target.closest("[data-conf]");
+  if (conf) { e.preventDefault(); const id=conf.dataset.conf, v=conf.dataset.v; S.conf[id] = S.conf[id]===v ? undefined : v; if(!S.conf[id]) delete S.conf[id]; openTopic = $("#t-"+id)?.open ? id : openTopic; save(); renderSyllabus(); return; }
+  const gt = e.target.closest("[data-goto-topic]");
+  if (gt) { openTopic = gt.dataset.gotoTopic; show("syllabus"); const el=$("#t-"+openTopic); if(el){ el.open=true; el.scrollIntoView({block:"center"}); } return; }
+  const gv = e.target.closest("[data-goto-viva]");
+  if (gv) { vivaSel = gv.dataset.gotoViva; vivaLO = "all"; show("viva"); return; }
+  const ct = e.target.closest("[data-cards-topic]");
+  if (ct) { fcFilter = ct.dataset.cardsTopic; buildQueue(); show("cards"); return; }
+  if (e.target.closest("#flash") || e.target.closest("#reveal")) { if(!fcShow){ fcShow=true; renderCards(); } return; }
+  if (e.target.closest("#skip")) { fcIdx=(fcIdx+1)%fcQueue.length; fcShow=false; renderCards(); return; }
+  const mk = e.target.closest("[data-mark]");
+  if (mk) { const c=fcQueue[fcIdx]; S.cards[c.id]=mk.dataset.mark; save(); fcIdx++; if(fcIdx>=fcQueue.length) buildQueue(); fcShow=false; renderCards(); return; }
+  const vq = e.target.closest("[data-vq]");
+  if (vq) { vivaSel = vq.dataset.vq; renderViva(); if (window.innerWidth<700) $(".vwork")?.scrollIntoView({block:"start"}); return; }
+  if (e.target.closest("#vivaRand")) { const pool=VIVA.filter(v => vivaLO==="all" || (vivaLO==="six"? !!v.six : v.lo===vivaLO)); vivaSel=pool[Math.floor(Math.random()*pool.length)].id; renderViva(); return; }
+  if (e.target.closest("#tStart")) { timerStart=Date.now(); clearInterval(timerInt); timerInt=setInterval(tick,250); tick(); return; }
+  if (e.target.closest("#tStop")) { clearInterval(timerInt); timerInt=null; return; }
+  if (e.target.closest("#markBtn")) { markAnswer(); return; }
+  if (e.target.closest("#markStop")) { markCtl && markCtl.abort(); return; }
+});
+document.addEventListener("change", e => {
+  const t = e.target;
+  if (t.id==="fcTopic") { fcFilter=t.value; buildQueue(); renderCards(); return; }
+  if (t.id==="fcMode") { fcMode=t.value; buildQueue(); renderCards(); return; }
+  if (t.id==="vivaLO") { vivaLO=t.value; const pool=VIVA.filter(v => vivaLO==="all" || (vivaLO==="six"? !!v.six : v.lo===vivaLO)); if(!pool.some(v=>v.id===vivaSel)) vivaSel=pool[0].id; renderViva(); return; }
+  if (t.dataset.plan) { S.plan[t.dataset.plan]=t.checked; save(); if(tab==="today") setTimeout(renderToday,250); return; }
+  if (t.dataset.slide) { S.slides[t.dataset.slide]=t.checked; save(); renderSlides(); return; }
+  if (t.dataset.look!=null) { const d=vivaData(vivaSel); const i=Number(t.dataset.look); d.checks=(d.checks||[]).filter(x=>x!==i); if(t.checked) d.checks.push(i); save(); return; }
+});
+let ansT=null;
+document.addEventListener("input", e => { if (e.target.id==="vAns") { const d=vivaData(vivaSel); d.a=e.target.value; clearTimeout(ansT); ansT=setTimeout(save,800); } });
+document.addEventListener("toggle", e => { const d=e.target; if (d.classList && d.classList.contains("topic")) { if (d.open) openTopic=d.id.slice(2); else if (openTopic===d.id.slice(2)) openTopic=null; } }, true);
+document.addEventListener("keydown", e => {
+  if (tab!=="cards" || /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;
+  if (e.key===" " && !fcShow) { e.preventDefault(); fcShow=true; renderCards(); }
+  else if (fcShow && ["1","2","3"].includes(e.key)) { const c=fcQueue[fcIdx]; S.cards[c.id]=({"1":"r","2":"a","3":"g"})[e.key]; save(); fcIdx++; if(fcIdx>=fcQueue.length) buildQueue(); fcShow=false; renderCards(); }
+});
+
+/* ---------- EXPORT / IMPORT ---------- */
+document.getElementById("exportBtn").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(S, null, 2)], {type:"application/json"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = "exam-coach-progress-" + todayISO() + ".json"; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  $("#ioNote").textContent = "Downloaded.";
+});
+document.getElementById("importFile").addEventListener("change", async e => {
+  const f = e.target.files && e.target.files[0]; if (!f) return;
+  try { const d = JSON.parse(await f.text()); if (!d || typeof d !== "object" || !d.conf) throw 0;
+    S = Object.assign(blank(), d); save(); renderAll(); $("#ioNote").textContent = "Progress imported."; }
+  catch (err) { $("#ioNote").textContent = "That file is not an Exam Coach progress file."; }
+  e.target.value = "";
+});
+
+/* ---------- BOOT ---------- */
+if (seedRed()) save();
+renderClocks(); setInterval(renderClocks, 60*60*1000);
+let start = (location.hash||"").replace("#","");
+if (!TABS.includes(start)) { try { start = localStorage.getItem(KEY+"-tab") || "today"; } catch(e){ start="today"; } }
+show(start, false);
+</script>
+
+</body>
+</html>
